@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hi - Testi Aç</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family:Arial;text-align:center;padding:30px;background:#F3F6FB;">
+
+<h1 style="color:#2563EB;">Hi!</h1>
+<h2>Beni gerçekten tanıyor musun?</h2>
+<p>Testi çözmek için uygulamayı aç.</p>
+
+<a id="btn"
+   style="display:block;background:#2563EB;color:white;padding:16px;border-radius:14px;text-decoration:none;font-weight:bold;"
+   href="#">
+    Testi Aç
+</a>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const testId = params.get("testId");
+
+    const playStoreUrl = "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
+    const link = "https://hi.github.io/hi/?testId=" + encodeURIComponent(testId || "");
+
+    document.getElementById("btn").href = link;
+
+    setTimeout(function () {
+        window.location.href = playStoreUrl;
+    }, 1800);
+</script>
+
+</body>
+</html>
