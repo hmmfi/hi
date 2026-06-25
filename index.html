@@ -1,9 +1,9 @@
+Aşağıdaki index.html dosyasını komple değiştir. TestCreateActivity dosyana uygun hale getirildi: active, question, options[].text, correctIndex yapısıyla çalışır.
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>Hi - Beni Ne Kadar Tanıyorsun?</title>
 
   <style>
@@ -24,14 +24,6 @@
       padding: 22px;
     }
 
-    .card {
-      background: white;
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.08);
-      margin-top: 24px;
-    }
-
     .logo {
       text-align: center;
       font-size: 42px;
@@ -46,6 +38,14 @@
       margin-bottom: 22px;
     }
 
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+      margin-top: 24px;
+    }
+
     h1 {
       font-size: 24px;
       text-align: center;
@@ -56,6 +56,7 @@
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 18px;
+      line-height: 1.4;
     }
 
     .option {
@@ -68,10 +69,6 @@
       font-size: 17px;
       cursor: pointer;
       text-align: left;
-    }
-
-    .option:hover {
-      background: #eff6ff;
     }
 
     .selected {
@@ -125,6 +122,7 @@
       padding: 14px;
       margin-top: 14px;
       font-size: 15px;
+      line-height: 1.5;
     }
 
     .hidden {
@@ -152,9 +150,7 @@
   <div class="logo">Hi</div>
   <div class="subtitle">Beni gerçekten tanıyor musun?</div>
 
-  <div id="loading" class="loading">
-    Test yükleniyor...
-  </div>
+  <div id="loading" class="loading">Test yükleniyor...</div>
 
   <div id="errorBox" class="card hidden">
     <p class="error">Test bulunamadı veya pasif durumda.</p>
@@ -206,15 +202,15 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
- const firebaseConfig = {
-  apiKey: "AIzaSyD-s8N4pggU8UiXd6owGZYBnZlwGAPlBCI",
-  authDomain: "e-okul-c3181.firebaseapp.com",
-  databaseURL: "https://e-okul-c3181.firebaseio.com",
-  projectId: "e-okul-c3181",
-  storageBucket: "e-okul-c3181.appspot.com",
-  messagingSenderId: "891894035258",
-  appId: "1:891894035258:android:14cb90f58b4992f8e1d603"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-s8N4pggU8UiXd6owGZYBnZlwGAPlBCI",
+    authDomain: "e-okul-c3181.firebaseapp.com",
+    databaseURL: "https://e-okul-c3181.firebaseio.com",
+    projectId: "e-okul-c3181",
+    storageBucket: "e-okul-c3181.appspot.com",
+    messagingSenderId: "891894035258",
+    appId: "1:891894035258:android:14cb90f58b4992f8e1d603"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
@@ -246,16 +242,20 @@
 
       testData = snapshot.val();
 
-      if (testData.isActive === false) {
+      if (testData.active === false || testData.isActive === false) {
         showError();
         return;
       }
 
-      questions = Array.isArray(testData.questions)
-        ? testData.questions
-        : Object.values(testData.questions || {});
+      if (Array.isArray(testData.questions)) {
+        questions = testData.questions;
+      } else if (testData.questions) {
+        questions = Object.values(testData.questions);
+      } else {
+        questions = [];
+      }
 
-      if (!questions || questions.length === 0) {
+      if (questions.length === 0) {
         showError();
         return;
       }
@@ -267,7 +267,7 @@
         testData.title || "Beni Ne Kadar Tanıyorsun?";
 
       document.getElementById("ownerInfo").innerText =
-        (testData.ownerName || "Bir arkadaşın") + " senin için test hazırladı.";
+        "Bir arkadaşın senin için test hazırladı.";
 
     } catch (e) {
       showError();
@@ -287,6 +287,7 @@
 
     document.getElementById("startBox").classList.add("hidden");
     document.getElementById("quizBox").classList.remove("hidden");
+    document.getElementById("resultBox").classList.add("hidden");
 
     showQuestion();
   };
@@ -300,19 +301,22 @@
       (currentIndex + 1) + " / " + questions.length;
 
     document.getElementById("questionText").innerText =
-      q.questionText || q.text || "Soru";
+      q.question || q.questionText || q.text || "Soru";
 
     const optionsBox = document.getElementById("optionsBox");
     optionsBox.innerHTML = "";
 
-    const options = Array.isArray(q.options)
-      ? q.options
-      : Object.values(q.options || {});
+    const options = getOptions(q);
+
+    if (options.length === 0) {
+      optionsBox.innerHTML = "<p>Bu sorunun şıkları bulunamadı.</p>";
+      return;
+    }
 
     options.forEach((option, index) => {
       const btn = document.createElement("button");
       btn.className = "option";
-      btn.innerText = String.fromCharCode(65 + index) + ") " + option;
+      btn.innerText = String.fromCharCode(65 + index) + ") " + getOptionText(option);
 
       btn.onclick = function () {
         selectedIndex = index;
@@ -335,23 +339,20 @@
     }
 
     const q = questions[currentIndex];
+    const options = getOptions(q);
 
     const correctIndex =
       typeof q.correctIndex === "number"
         ? q.correctIndex
         : parseInt(q.correctIndex || "0");
 
-    const options = Array.isArray(q.options)
-      ? q.options
-      : Object.values(q.options || {});
-
     if (selectedIndex === correctIndex) {
       correctCount++;
     } else {
       wrongAnswers.push({
-        question: q.questionText || q.text || "Soru",
-        selected: options[selectedIndex] || "",
-        correct: options[correctIndex] || ""
+        question: q.question || q.questionText || q.text || "Soru",
+        selected: getOptionText(options[selectedIndex]),
+        correct: getOptionText(options[correctIndex])
       });
     }
 
@@ -372,11 +373,10 @@
 
     document.getElementById("resultPercent").innerText = "%" + percent;
 
-    const ownerName = testData.ownerName || "arkadaşını";
-
     document.getElementById("resultText").innerText =
-      ownerName + " kişisini %" + percent + " tanıyorsun. " +
-      correctCount + " doğru, " + (questions.length - correctCount) + " yanlış.";
+      "Bu testi %" + percent + " oranında bildin. " +
+      correctCount + " doğru, " +
+      (questions.length - correctCount) + " yanlış.";
 
     if (wrongAnswers.length > 0) {
       const wrongBox = document.getElementById("wrongBox");
@@ -396,10 +396,9 @@
 
   window.shareResult = function () {
     const percent = Math.round((correctCount / questions.length) * 100);
-    const ownerName = testData.ownerName || "arkadaşımı";
 
     let message =
-      "🔥 " + ownerName + " kişisini %" + percent + " tanıyorum!\n\n" +
+      "🔥 Bu testi %" + percent + " oranında bildim!\n\n" +
       "✅ Doğru: " + correctCount + "\n" +
       "❌ Yanlış: " + (questions.length - correctCount) + "\n\n";
 
@@ -420,8 +419,7 @@
       "Kendi testini oluştur 👇\n" +
       "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
 
-    const url = "https://wa.me/?text=" + encodeURIComponent(message);
-    window.open(url, "_blank");
+    window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank");
   };
 
   window.openApp = function () {
@@ -435,6 +433,30 @@
     document.getElementById("wrongBox").innerHTML = "";
     startTest();
   };
+
+  function getOptions(q) {
+    if (Array.isArray(q.options)) {
+      return q.options;
+    }
+
+    if (q.options) {
+      return Object.values(q.options);
+    }
+
+    return [];
+  }
+
+  function getOptionText(option) {
+    if (typeof option === "string") {
+      return option;
+    }
+
+    if (option && option.text) {
+      return option.text;
+    }
+
+    return "";
+  }
 
   function escapeHtml(text) {
     return String(text)
