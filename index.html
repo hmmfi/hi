@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hi - Beni Ne Kadar Tanıyorsun?</title>
+  
 
   <style>
     * {
@@ -266,7 +266,7 @@
         testData.title || "Beni Ne Kadar Tanıyorsun?";
 
       document.getElementById("ownerInfo").innerText =
-        "Bir arkadaşın senin için test hazırladı.";
+        "Senin için test hazırladım.";
 
     } catch (e) {
       showError();
@@ -373,7 +373,7 @@
     document.getElementById("resultPercent").innerText = "%" + percent;
 
     document.getElementById("resultText").innerText =
-      "Bu testi %" + percent + " oranında bildin. " +
+      "Başarı oranı %" + percent  +
       correctCount + " doğru, " +
       (questions.length - correctCount) + " yanlış.";
 
@@ -397,7 +397,7 @@
     const percent = Math.round((correctCount / questions.length) * 100);
 
     let message =
-      "🔥 Bu testi %" + percent + " oranında bildim!\n\n" +
+      "🔥 Başarı %" + percent + "\n\n" +
       "✅ Doğru: " + correctCount + "\n" +
       "❌ Yanlış: " + (questions.length - correctCount) + "\n\n";
 
@@ -414,8 +414,8 @@
     }
 
     message +=
-      "Bakalım sen beni ne kadar tanıyorsun?\n" +
-      "Kendi testini oluştur 👇\n" +
+      "Arkadaşlarların seni ne kadar tanıyor merak ediyor musun ?\n"+
+      "Kendi testini oluştur👇\n" +
       "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
 
     window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank");
