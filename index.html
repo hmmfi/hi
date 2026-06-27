@@ -6,10 +6,7 @@
   <title>Hi - Beni Ne Kadar Tanıyorsun?</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
 
     body {
       margin: 0;
@@ -128,19 +125,15 @@
       margin-bottom: 14px;
     }
 
-    .result-percent {
-      font-size: 56px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-align: center;
-      margin: 18px 0;
+    .result-preview {
+      width: 100%;
+      border-radius: 24px;
+      margin-top: 14px;
+      border: 1px solid #e5edff;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.14);
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
     .error {
       text-align: center;
@@ -160,8 +153,8 @@
 
 <div class="container">
 
-  <img class="top-logo" src="hi_logo_trans.png" alt="Hi Logo">
-
+  <img id="mainLogo" class="top-logo" src="hi_logo_trans.png" alt="Hi Logo">
+  <div class="subtitle">Beni ne kadar tanıyorsun?</div>
 
   <div id="loading" class="loading">Test yükleniyor...</div>
 
@@ -170,7 +163,6 @@
   </div>
 
   <div id="startBox" class="card hidden">
-    <h1 id="testTitle"></h1>
     <p class="desc">
       Senin için hazırladığım soruları cevapla, beni ne kadar iyi tanıdığını göster.
     </p>
@@ -186,13 +178,8 @@
 
     <input id="solverNameInput" class="input" type="text" placeholder="Ad Soyad">
 
-    <button class="btn btn-primary" onclick="startTestWithName()">
-      Devam Et
-    </button>
-
-    <button class="btn btn-light" onclick="skipName()">
-      Atla
-    </button>
+    <button class="btn btn-primary" onclick="startTestWithName()">Devam Et</button>
+    <button class="btn btn-light" onclick="skipName()">Atla</button>
   </div>
 
   <div id="quizBox" class="card hidden">
@@ -200,18 +187,15 @@
     <div id="questionText" class="question"></div>
     <div id="optionsBox"></div>
 
-    <button class="btn btn-primary" onclick="nextQuestion()">
-      Devam Et
-    </button>
+    <button class="btn btn-primary" onclick="nextQuestion()">Devam Et</button>
   </div>
 
   <div id="resultBox" class="card hidden">
     <h1>Sonucun Hazır 🎉</h1>
 
-    <div id="resultPercent" class="result-percent"></div>
-    <p id="resultText" class="desc"></p>
+    <img id="resultImage" class="result-preview" alt="Sonuç Görseli">
 
-    <button class="btn btn-green" onclick="shareResult()">
+    <button class="btn btn-green" onclick="shareResultImage()">
       Sonucu Arkadaşınla Paylaş
     </button>
 
@@ -246,6 +230,8 @@
   let selectedIndex = -1;
   let correctCount = 0;
   let solverName = "";
+  let resultPercent = 0;
+  let resultBlob = null;
 
   window.onload = async function () {
     const params = new URLSearchParams(window.location.search);
@@ -275,8 +261,6 @@
         questions = testData.questions;
       } else if (testData.questions) {
         questions = Object.values(testData.questions);
-      } else {
-        questions = [];
       }
 
       if (questions.length === 0) {
@@ -286,9 +270,6 @@
 
       document.getElementById("loading").classList.add("hidden");
       document.getElementById("startBox").classList.remove("hidden");
-
-      document.getElementById("testTitle").innerText =
-        testData.title || "Beni Ne Kadar Tanıyorsun?";
 
     } catch (e) {
       showError();
@@ -388,32 +369,102 @@
     }
   };
 
-  function showResult() {
+  async function showResult() {
     document.getElementById("quizBox").classList.add("hidden");
     document.getElementById("resultBox").classList.remove("hidden");
 
-    const percent = Math.round((correctCount / questions.length) * 100);
-
-    document.getElementById("resultPercent").innerText = "%" + percent;
-
-    document.getElementById("resultText").innerText =
-      "Arkadaşını %" + percent + " tanıyorsun.";
+    resultPercent = Math.round((correctCount / questions.length) * 100);
+    await createResultImage(resultPercent);
   }
 
-  window.shareResult = function () {
-    const percent = Math.round((correctCount / questions.length) * 100);
+  async function createResultImage(percent) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1080;
 
-    let message = "";
+    const ctx = canvas.getContext("2d");
 
-    if (solverName.length > 0) {
-      message += solverName + " sonucu:\n";
+    const bg = ctx.createLinearGradient(0, 0, 1080, 1080);
+    bg.addColorStop(0, "#f8fbff");
+    bg.addColorStop(1, "#eaf2ff");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    roundRect(ctx, 90, 90, 900, 900, 48);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    ctx.shadowColor = "rgba(37,99,235,0.18)";
+    ctx.shadowBlur = 28;
+    ctx.shadowOffsetY = 14;
+
+    roundRect(ctx, 90, 90, 900, 900, 48);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+
+    const logo = document.getElementById("mainLogo");
+    try {
+      ctx.drawImage(logo, 365, 145, 350, 350);
+    } catch (e) {}
+
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#111827";
+    ctx.font = "bold 48px Arial";
+    ctx.fillText("Başarı Yüzdesi", 540, 535);
+
+    const gradient = ctx.createLinearGradient(300, 610, 780, 760);
+    gradient.addColorStop(0, "#7c3aed");
+    gradient.addColorStop(0.55, "#2563eb");
+    gradient.addColorStop(1, "#06b6d4");
+
+    ctx.fillStyle = gradient;
+    ctx.font = "bold 150px Arial";
+    ctx.fillText("%" + percent, 540, 705);
+
+    ctx.fillStyle = "#374151";
+    ctx.font = "bold 42px Arial";
+    ctx.fillText("Arkadaşını %" + percent + " tanıyorsun", 540, 790);
+
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "32px Arial";
+    ctx.fillText("Bakalım seni kim ne kadar tanıyor?", 540, 850);
+
+    ctx.fillStyle = "#2563eb";
+    ctx.font = "bold 34px Arial";
+    ctx.fillText("Hi - Beni ne kadar tanıyorsun?", 540, 925);
+
+    const dataUrl = canvas.toDataURL("image/png");
+    document.getElementById("resultImage").src = dataUrl;
+
+    resultBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  }
+
+  window.shareResultImage = async function () {
+    const shareText =
+      "🔥 Seni %" + resultPercent + " tanıyorum!\n\n" +
+      "Bakalım sen beni ne kadar tanıyorsun?\n\n" +
+      "Kendi testini oluştur 👇\n" +
+      "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
+
+    if (resultBlob && navigator.canShare) {
+      const file = new File([resultBlob], "hi-sonuc.png", { type: "image/png" });
+
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            text: shareText,
+            title: "Hi Sonucum"
+          });
+          return;
+        } catch (e) {}
+      }
     }
 
-    message +=
-      "🔥 Seni %" + percent + " tanıyorum!"
-    ;
-
-    window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank");
+    window.open("https://wa.me/?text=" + encodeURIComponent(shareText), "_blank");
   };
 
   window.openApp = function () {
@@ -422,27 +473,29 @@
   };
 
   function getOptions(q) {
-    if (Array.isArray(q.options)) {
-      return q.options;
-    }
-
-    if (q.options) {
-      return Object.values(q.options);
-    }
-
+    if (Array.isArray(q.options)) return q.options;
+    if (q.options) return Object.values(q.options);
     return [];
   }
 
   function getOptionText(option) {
-    if (typeof option === "string") {
-      return option;
-    }
-
-    if (option && option.text) {
-      return option.text;
-    }
-
+    if (typeof option === "string") return option;
+    if (option && option.text) return option.text;
     return "";
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
   }
 </script>
 
