@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+  <title>Hi - Beni Ne Kadar Tanıyorsun?</title>
 
   <style>
     * {
@@ -23,32 +23,53 @@
       padding: 22px;
     }
 
-    .logo {
-      text-align: center;
-      font-size: 42px;
-      font-weight: 800;
-      color: #2563eb;
-      margin-bottom: 6px;
+    .top-logo {
+      display: block;
+      width: 135px;
+      height: auto;
+      margin: 8px auto 8px auto;
     }
 
     .subtitle {
       text-align: center;
-      color: #6b7280;
+      font-size: 22px;
+      font-weight: 800;
+      color: #111827;
       margin-bottom: 22px;
     }
 
     .card {
       background: white;
-      border-radius: 24px;
+      border-radius: 26px;
       padding: 24px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.08);
-      margin-top: 24px;
+      box-shadow: 0 12px 35px rgba(37, 99, 235, 0.12);
+      margin-top: 20px;
+      border: 1px solid #e5edff;
     }
 
     h1 {
       font-size: 24px;
       text-align: center;
       margin: 10px 0;
+    }
+
+    .desc {
+      text-align: center;
+      color: #6b7280;
+      font-size: 16px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .input {
+      width: 100%;
+      border: 2px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 16px;
+      padding: 15px;
+      margin-top: 14px;
+      font-size: 16px;
+      outline: none;
     }
 
     .question {
@@ -87,7 +108,7 @@
     }
 
     .btn-primary {
-      background: #2563eb;
+      background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
       color: white;
     }
 
@@ -108,20 +129,13 @@
     }
 
     .result-percent {
-      font-size: 48px;
+      font-size: 56px;
       font-weight: 900;
-      color: #2563eb;
+      background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       text-align: center;
       margin: 18px 0;
-    }
-
-    .wrong-list {
-      background: #fff7ed;
-      border-radius: 16px;
-      padding: 14px;
-      margin-top: 14px;
-      font-size: 15px;
-      line-height: 1.5;
     }
 
     .hidden {
@@ -146,8 +160,8 @@
 
 <div class="container">
 
-  <div class="logo">Hi</div>
-  <div class="subtitle">Beni gerçekten tanıyor musun?</div>
+  <img class="top-logo" src="hi_logo_trans.png" alt="Hi Logo">
+  <div class="subtitle">Beni ne kadar tanıyorsun?</div>
 
   <div id="loading" class="loading">Test yükleniyor...</div>
 
@@ -157,10 +171,27 @@
 
   <div id="startBox" class="card hidden">
     <h1 id="testTitle"></h1>
-    <p id="ownerInfo" style="text-align:center;color:#6b7280;"></p>
+    <p class="desc">
+      Senin için hazırladığım soruları cevapla, beni ne kadar iyi tanıdığını göster.
+    </p>
 
-    <button class="btn btn-primary" onclick="startTest()">
+    <button class="btn btn-primary" onclick="showNameBox()">
       Teste Başla
+    </button>
+  </div>
+
+  <div id="nameBox" class="card hidden">
+    <h1>Adını yaz</h1>
+    <p class="desc">İstersen ad soyad yazabilir veya bu adımı atlayabilirsin.</p>
+
+    <input id="solverNameInput" class="input" type="text" placeholder="Ad Soyad">
+
+    <button class="btn btn-primary" onclick="startTestWithName()">
+      Devam Et
+    </button>
+
+    <button class="btn btn-light" onclick="skipName()">
+      Atla
     </button>
   </div>
 
@@ -178,20 +209,14 @@
     <h1>Sonucun Hazır 🎉</h1>
 
     <div id="resultPercent" class="result-percent"></div>
-    <p id="resultText" style="text-align:center;font-size:18px;"></p>
-
-    <div id="wrongBox" class="wrong-list hidden"></div>
+    <p id="resultText" class="desc"></p>
 
     <button class="btn btn-green" onclick="shareResult()">
-      WhatsApp'ta Paylaş
+      Sonucu Arkadaşınla Paylaş
     </button>
 
     <button class="btn btn-primary" onclick="openApp()">
       Kendi Testini Oluştur
-    </button>
-
-    <button class="btn btn-light" onclick="restartTest()">
-      Tekrar Çöz
     </button>
   </div>
 
@@ -220,7 +245,7 @@
   let currentIndex = 0;
   let selectedIndex = -1;
   let correctCount = 0;
-  let wrongAnswers = [];
+  let solverName = "";
 
   window.onload = async function () {
     const params = new URLSearchParams(window.location.search);
@@ -265,9 +290,6 @@
       document.getElementById("testTitle").innerText =
         testData.title || "Beni Ne Kadar Tanıyorsun?";
 
-      document.getElementById("ownerInfo").innerText =
-        "Senin için test hazırladım.";
-
     } catch (e) {
       showError();
     }
@@ -278,18 +300,32 @@
     document.getElementById("errorBox").classList.remove("hidden");
   }
 
-  window.startTest = function () {
+  window.showNameBox = function () {
+    document.getElementById("startBox").classList.add("hidden");
+    document.getElementById("nameBox").classList.remove("hidden");
+  };
+
+  window.startTestWithName = function () {
+    solverName = document.getElementById("solverNameInput").value.trim();
+    startTest();
+  };
+
+  window.skipName = function () {
+    solverName = "";
+    startTest();
+  };
+
+  function startTest() {
     currentIndex = 0;
     selectedIndex = -1;
     correctCount = 0;
-    wrongAnswers = [];
 
-    document.getElementById("startBox").classList.add("hidden");
+    document.getElementById("nameBox").classList.add("hidden");
     document.getElementById("quizBox").classList.remove("hidden");
     document.getElementById("resultBox").classList.add("hidden");
 
     showQuestion();
-  };
+  }
 
   function showQuestion() {
     selectedIndex = -1;
@@ -306,11 +342,6 @@
     optionsBox.innerHTML = "";
 
     const options = getOptions(q);
-
-    if (options.length === 0) {
-      optionsBox.innerHTML = "<p>Bu sorunun şıkları bulunamadı.</p>";
-      return;
-    }
 
     options.forEach((option, index) => {
       const btn = document.createElement("button");
@@ -338,7 +369,6 @@
     }
 
     const q = questions[currentIndex];
-    const options = getOptions(q);
 
     const correctIndex =
       typeof q.correctIndex === "number"
@@ -347,12 +377,6 @@
 
     if (selectedIndex === correctIndex) {
       correctCount++;
-    } else {
-      wrongAnswers.push({
-        question: q.question || q.questionText || q.text || "Soru",
-        selected: getOptionText(options[selectedIndex]),
-        correct: getOptionText(options[correctIndex])
-      });
     }
 
     currentIndex++;
@@ -373,50 +397,21 @@
     document.getElementById("resultPercent").innerText = "%" + percent;
 
     document.getElementById("resultText").innerText =
-      "\n"
-      correctCount + " doğru, " +
-      (questions.length - correctCount) + " yanlış.";
-
-    if (wrongAnswers.length > 0) {
-      const wrongBox = document.getElementById("wrongBox");
-      wrongBox.classList.remove("hidden");
-
-      let html = "<b>Yanlış cevapladığın sorular:</b><br><br>";
-
-      wrongAnswers.forEach((w, i) => {
-        html += (i + 1) + ". " + escapeHtml(w.question) + "<br>";
-        html += "Senin cevabın: " + escapeHtml(w.selected) + "<br>";
-        html += "Doğru cevap: " + escapeHtml(w.correct) + "<br><br>";
-      });
-
-      wrongBox.innerHTML = html;
-    }
+      "Arkadaşını %" + percent + " tanıyorsun.";
   }
 
   window.shareResult = function () {
     const percent = Math.round((correctCount / questions.length) * 100);
 
-    let message =
-      "🔥 Başarı %" + percent + "\n\n" +
-      "✅ Doğru: " + correctCount + "\n" +
-      "❌ Yanlış: " + (questions.length - correctCount) + "\n\n";
+    let message = "";
 
-    if (wrongAnswers.length > 0) {
-      message += "Yanlış cevapladığım sorular:\n";
-
-      wrongAnswers.forEach((w, i) => {
-        message += "\n" + (i + 1) + ") " + w.question + "\n";
-        message += "Benim cevabım: " + w.selected + "\n";
-        message += "Doğru cevap: " + w.correct + "\n";
-      });
-
-      message += "\n";
+    if (solverName.length > 0) {
+      message += solverName + " sonucu:\n";
     }
 
     message +=
-      "Arkadaşlarların seni ne kadar tanıyor merak ediyor musun ?\n"+
-      "Kendi testini oluştur👇\n" +
-      "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
+      "🔥 Seni %" + percent + " tanıyorum!"
+    ;
 
     window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank");
   };
@@ -424,13 +419,6 @@
   window.openApp = function () {
     window.location.href =
       "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
-  };
-
-  window.restartTest = function () {
-    document.getElementById("resultBox").classList.add("hidden");
-    document.getElementById("wrongBox").classList.add("hidden");
-    document.getElementById("wrongBox").innerHTML = "";
-    startTest();
   };
 
   function getOptions(q) {
@@ -455,15 +443,6 @@
     }
 
     return "";
-  }
-
-  function escapeHtml(text) {
-    return String(text)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
   }
 </script>
 
