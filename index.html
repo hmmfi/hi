@@ -424,25 +424,14 @@
 
     ctx.fillStyle = "#374151";
     ctx.font = "bold 42px Arial";
-    ctx.fillText("Arkadaşını %" + percent + " tanıyorsun", 540, 790);
-
-    ctx.fillStyle = "#6b7280";
-    ctx.font = "32px Arial";
-    ctx.fillText("Bakalım seni kim ne kadar tanıyor?", 540, 850);
-
-    ctx.fillStyle = "#2563eb";
-    ctx.font = "bold 34px Arial";
-    ctx.fillText("Hi - Beni ne kadar tanıyorsun?", 540, 925);
-
+    ctx.fillText("🔥 Seni %" + resultPercent + " tanıyorum!", 540, 790);
     const dataUrl = canvas.toDataURL("image/png");
     document.getElementById("resultImage").src = dataUrl;
-
     resultBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
   }
 
   window.shareResultImage = async function () {
-    const shareText =
-      "🔥 Seni %" + resultPercent + " tanıyorum!";
+    const shareText ="";
 
     if (resultBlob && navigator.canShare) {
       const file = new File([resultBlob], "hi-sonuc.png", { type: "image/png" });
