@@ -173,11 +173,9 @@
   </div>
 
   <div id="nameBox" class="card hidden">
-    <h1>Adını yaz</h1>
-    <p class="desc">İstersen ad soyad yazabilir veya bu adımı atlayabilirsin.</p>
+    <h1>Adınızı Giriniz</h1>
 
-    <input id="solverNameInput" class="input" type="text" placeholder="Ad Soyad">
-
+    <input id="solverNameInput" class="input" type="text" placeholder="Adınız...">
     <button class="btn btn-primary" onclick="startTestWithName()">Devam Et</button>
     <button class="btn btn-light" onclick="skipName()">Atla</button>
   </div>
@@ -444,10 +442,7 @@
 
   window.shareResultImage = async function () {
     const shareText =
-      "🔥 Seni %" + resultPercent + " tanıyorum!\n\n" +
-      "Bakalım sen beni ne kadar tanıyorsun?\n\n" +
-      "Kendi testini oluştur 👇\n" +
-      "https://play.google.com/store/apps/details?id=com.hmmfi.hi";
+      "🔥 Seni %" + resultPercent + " tanıyorum!";
 
     if (resultBlob && navigator.canShare) {
       const file = new File([resultBlob], "hi-sonuc.png", { type: "image/png" });
